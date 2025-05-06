@@ -1,4 +1,4 @@
-# Interactive Web-Based Headless Browser with High-FPS Streaming
+# Interactive Web-Based Headless Browser
 
 A real-time interactive headless browser that can be viewed and controlled through a web interface with high-performance streaming capabilities.
 
@@ -35,7 +35,7 @@ A real-time interactive headless browser that can be viewed and controlled throu
 
 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/headless-browser-stream.git
+git clone https://github.com/loool999/browser-test-2.git
 cd headless-browser-stream
 ```
 
