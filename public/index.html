@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Headless Browser Stream</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/pako.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-top">
+                <h1>Interactive Headless Browser</h1>
+                <div class="status-indicators">
+                    <span id="connection-status">Disconnected</span>
+                    <span id="fps-counter">0 FPS</span>
+                    <span id="latency-indicator">0ms</span>
+                </div>
+            </div>
+            
+            <div class="navigation-controls">
+                <button id="back-button" title="Back"><i class="fas fa-arrow-left"></i></button>
+                <button id="forward-button" title="Forward"><i class="fas fa-arrow-right"></i></button>
+                <button id="refresh-button" title="Refresh"><i class="fas fa-sync-alt"></i></button>
+                <div class="url-container">
+                    <span class="url-protocol">https://</span>
+                    <input type="text" id="url-input" placeholder="Enter URL...">
+                </div>
+                <button id="go-button">Go</button>
+            </div>
+        </header>
+        
+        <main>
+            <div class="browser-container">
+                <div id="browser-display">
+                    <div class="loading-overlay" id="loading-overlay">
+                        <div class="spinner"></div>
+                        <p>Starting browser...</p>
+                    </div>
+                    <div class="interaction-layer">
+                        <canvas id="display-canvas"></canvas>
+                        <!-- Overlay elements for visual feedback -->
+                        <div class="cursor-indicator" id="cursor-indicator"></div>
+                        <div class="click-ripple" id="click-ripple"></div>
+                        <div class="selection-box" id="selection-box"></div>
+                        <div class="keyboard-indicator" id="keyboard-indicator">
+                            <span id="keyboard-text"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="browser-toolbar">
+                    <div class="action-buttons">
+                        <button id="fullscreen-button" title="Fullscreen"><i class="fas fa-expand"></i></button>
+                        <button id="screenshot-button" title="Take Screenshot"><i class="fas fa-camera"></i></button>
+                        <button id="toggle-stream" title="Pause/Resume Stream"><i class="fas fa-pause"></i></button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <div class="panel-section">
+                    <h3>Connection Info</h3>
+                    <div id="connection-info">
+                        <p><strong>Browser ID:</strong> <span id="browser-id">None</span></p>
+                        <p><strong>Active Browsers:</strong> <span id="active-browsers">0</span></p>
+                        <p><strong>URL:</strong> <span id="current-url">-</span></p>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h3>Performance</h3>
+                    <div id="performance-stats">
+                        <p><strong>FPS:</strong> <span id="avg-fps">0</span></p>
+                        <p><strong>Latency:</strong> <span id="latency">0ms</span></p>
+                        <p><strong>Frames:</strong> <span id="frames-received">0</span></p>
+                        <p><strong>Data Rate:</strong> <span id="data-rate">0 KB/s</span></p>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h3>Stream Settings</h3>
+                    <div class="stream-settings">
+                        <div class="setting-control">
+                            <label for="quality-slider">Quality: <span id="quality-value">80</span></label>
+                            <input type="range" id="quality-slider" min="20" max="95" value="80">
+                        </div>
+                        <div class="setting-control">
+                            <label for="fps-slider">Target FPS: <span id="fps-value">30</span></label>
+                            <input type="range" id="fps-slider" min="10" max="60" value="30">
+                        </div>
+                        <div class="setting-control checkbox">
+                            <input type="checkbox" id="adaptive-bitrate" checked>
+                            <label for="adaptive-bitrate">Adaptive Bitrate</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h3>Input Controls</h3>
+                    <div class="input-controls">
+                        <div class="setting-control checkbox">
+                            <input type="checkbox" id="enable-keyboard" checked>
+                            <label for="enable-keyboard">Keyboard Input</label>
+                        </div>
+                        <div class="setting-control checkbox">
+                            <input type="checkbox" id="enable-mouse" checked>
+                            <label for="enable-mouse">Mouse Input</label>
+                        </div>
+                        <div class="setting-control checkbox">
+                            <input type="checkbox" id="show-interaction-feedback" checked>
+                            <label for="show-interaction-feedback">Show Interaction Feedback</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h3>Special Keys</h3>
+                    <div class="special-keys">
+                        <button class="key-button" data-key="Tab">Tab</button>
+                        <button class="key-button" data-key="Escape">Esc</button>
+                        <button class="key-button" data-key="Enter">Enter</button>
+                        <button class="key-button" data-key="Backspace">Backspace</button>
+                        <button class="key-button" data-key="Delete">Delete</button>
+                        <button class="key-button" data-key="ArrowUp">↑</button>
+                        <button class="key-button" data-key="ArrowDown">↓</button>
+                        <button class="key-button" data-key="ArrowLeft">←</button>
+                        <button class="key-button" data-key="ArrowRight">→</button>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h3>Session</h3>
+                    <div class="session-actions">
+                        <button id="restart-browser" class="full-width-button">
+                            <i class="fas fa-redo-alt"></i> Restart Browser
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>Headless Browser Streaming Project © 2025</p>
+        </footer>
+    </div>
+    
+    <!-- Alerts/Notifications -->
+    <div id="notification" class="notification">
+        <div class="notification-content">
+            <span id="notification-message"></span>
+            <button id="notification-close"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+    
+    <!-- Touch Controls for Mobile -->
+    <div id="mobile-controls" class="mobile-controls">
+        <button id="mobile-keyboard-toggle"><i class="fas fa-keyboard"></i></button>
+        <button id="mobile-touch-toggle"><i class="fas fa-hand-pointer"></i></button>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
