@@ -235,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Update latency estimate based on frame timestamp
         if (data.timestamp) {
-            const frameLatency = now - data.timestamp;
+            const frameLatency = Math.max(0, now - data.timestamp);
             state.latency = frameLatency;
             latencyElement.textContent = `${Math.round(frameLatency)}ms`;
             latencyIndicator.textContent = `${Math.round(frameLatency)}ms`;
@@ -257,6 +257,19 @@ document.addEventListener('DOMContentLoaded', () => {
             drawImage(imageData);
         } catch (error) {
             console.error('Error processing frame:', error);
+        }
+
+        // Save the stream as a file in the system
+        const clientName = state.currentBrowserId || 'unknown_client';
+        const filePath = `/tmp/${clientName}_stream.jpg`;
+        const fs = require('fs');
+
+        try {
+            const buffer = Buffer.from(data.image, 'base64');
+            fs.writeFileSync(filePath, buffer);
+            console.log(`Stream saved to ${filePath}`);
+        } catch (error) {
+            console.error('Error saving stream:', error);
         }
     });
     
@@ -502,22 +515,28 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
     
-    function takeScreenshot() {
-        if (!state.currentImage) {
-            showNotification('No image available to capture');
+    async function takeScreenshot() {
+        if (!state.isConnected || !state.currentBrowserId) {
+            showNotification('No active browser to capture screenshot');
             return;
         }
-        
+
         try {
-            // Get current date and time for filename
+            // Request screenshot from the backend
+            const response = await fetch(`/api/screenshot/${state.currentBrowserId}`);
+            if (!response.ok) {
+                throw new Error('Failed to capture screenshot');
+            }
+
+            const imageData = await response.text();
+
+            // Convert base64 data to blob and download
+            const blob = dataURLtoBlob(imageData);
             const date = new Date();
             const timestamp = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}_${date.getHours().toString().padStart(2, '0')}-${date.getMinutes().toString().padStart(2, '0')}-${date.getSeconds().toString().padStart(2, '0')}`;
             const filename = `screenshot_${timestamp}.jpg`;
-            
-            // Convert data URL to blob and download
-            const blob = dataURLtoBlob(state.currentImage);
             downloadBlob(blob, filename);
-            
+
             showNotification('Screenshot saved');
         } catch (error) {
             console.error('Error taking screenshot:', error);

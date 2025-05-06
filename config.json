@@ -1,0 +1,45 @@
+{
+  "server": {
+    "port": 8002,
+    "host": "0.0.0.0",
+    "corsOrigin": "*",
+    "socketPath": "/socket.io"
+  },
+  "browser": {
+    "defaultUrl": "https://www.google.com",
+    "maxBrowsers": 5,
+    "defaultViewport": {
+      "width": 1920,
+      "height": 1080
+    },
+    "defaultUserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "browserTimeout": 900000
+  },
+  "streaming": {
+    "defaultQuality": 80,
+    "defaultFps": 30,
+    "screenshotType": "jpeg",
+    "adaptiveBitrate": true,
+    "keyframeInterval": 10,
+    "maxFps": 60,
+    "minFps": 5
+  },
+  "security": {
+    "sessionTimeout": 7200000,
+    "maxFailedAttempts": 5,
+    "rateLimit": {
+      "windowMs": 60000,
+      "max": 100
+    }
+  },
+  "features": {
+    "recording": false,
+    "plugins": false,
+    "userAccounts": false,
+    "adminPanel": false
+  },
+  "storage": {
+    "type": "local",
+    "path": "./storage"
+  }
+}

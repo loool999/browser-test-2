@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { RequestHandler } from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
@@ -6,9 +6,10 @@ import dotenv from 'dotenv';
 import path from 'path';
 import compression from 'compression';
 import { instrument } from '@socket.io/admin-ui';
+import { Request, Response } from 'express';
 
 // Import services
-import { setupBrowserService } from './services/browserService';
+import { setupBrowserService, getScreenshot } from './services/browserService';
 import { setupSocketHandlers } from './services/socketService';
 import { initSessionService } from './services/sessionService';
 import { initSecurityService } from './services/securityService';
@@ -95,6 +96,21 @@ app.get('/api/status', (req, res) => {
     version: '1.0.0'
   });
 });
+
+// Add route to capture screenshot
+app.get('/api/screenshot/:id', (async (req, res) => {
+  const { id } = req.params;
+  try {
+    const screenshot = await getScreenshot(id);
+    if (!screenshot) {
+      return res.status(404).json({ success: false, message: 'Browser instance not found or screenshot failed' });
+    }
+    res.json({ success: true, screenshot });
+  } catch (error) {
+    logger.error('Error capturing screenshot:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+}) as RequestHandler);
 
 // Start server
 const PORT = 8002;
